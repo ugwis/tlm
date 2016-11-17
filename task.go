@@ -3,10 +3,12 @@ package main
 import (
 	"log"
 	"net/url"
+	"sort"
 	"strconv"
 	"sync"
 
 	"github.com/bgpat/twtr"
+	"github.com/cznic/sortutil"
 	"github.com/davecgh/go-spew/spew"
 )
 
@@ -35,102 +37,86 @@ func getlist(client *twitter.Client, id int64) ([]int64, error) {
 	return ret, nil
 }
 
-func jobtask(jobparam Job, listarr *map[List][]int64, client *twitter.Client) {
+func getlistmembers(listarg List, client *twitter.Client,
+	chanerr chan error, ret *map[List][]int64, mutex *sync.Mutex) {
+	list := []int64{}
 
+	if listarg.ListID != 0 {
+		var err error
+		list, err = getlist(client, listarg.ListID)
+		if err != nil {
+			chanerr <- err
+			return
+		}
+	}
+
+	/*
+		Golang1.7.4から以下の構文が入るかもしれない？
+
+		sort.Slice(list, func(i, j int64) bool {
+			return i < j
+		})
+	*/
+
+	/*
+		入るまでのつなぎ。
+	*/
+
+	var listint64 sortutil.Int64Slice
+	listint64 = list
+	sort.Sort(listint64)
+	list = listint64
+
+	/*
+		ここまで
+	*/
+
+	mutex.Lock()
+	(*ret)[listarg] = list
+	mutex.Unlock()
+	chanerr <- nil
 }
 
 func getalllist(jobs []Job, client *twitter.Client) (map[List][]int64, error) {
 	var mutex sync.Mutex
-	var syn sync.WaitGroup
 	ret := make(map[List][]int64)
-	chanerr := make(chan error, len(jobs)+1)
+	chanerr := make(chan error, len(jobs)*3+1)
 	defer close(chanerr)
 	for _, v := range jobs {
 		if _, ok := ret[v.List1]; !ok {
-			go func() {
-				syn.Add(1)
-				if v.List1.ListID != 0 {
-					list, err := getlist(client, v.List1.ListID)
-					if err != nil {
-						chanerr <- err
-					} else {
-						chanerr <- nil
-						mutex.Lock()
-						ret[v.List1] = list
-						mutex.Unlock()
-					}
-				} else {
-					chanerr <- nil
-					mutex.Lock()
-					ret[v.Listresult] = []int64{}
-					mutex.Unlock()
-
-				}
-				syn.Done()
-			}()
+			go getlistmembers(v.List1, client, chanerr, &ret, &mutex)
+		} else {
+			chanerr <- nil
 		}
 		if _, ok := ret[v.List2]; !ok {
-			go func() {
-				syn.Add(1)
-				if v.List2.ListID != 0 {
-					list, err := getlist(client, v.List2.ListID)
-					if err != nil {
-						chanerr <- err
-					} else {
-						chanerr <- nil
-						mutex.Lock()
-						ret[v.List2] = list
-						mutex.Unlock()
-					}
-				} else {
-					chanerr <- nil
-					mutex.Lock()
-					ret[v.Listresult] = []int64{}
-					mutex.Unlock()
-				}
-				syn.Done()
-			}()
+			go getlistmembers(v.List2, client, chanerr, &ret, &mutex)
+		} else {
+			chanerr <- nil
 		}
 		if _, ok := ret[v.Listresult]; !ok {
-			go func() {
-				syn.Add(1)
-				if v.Listresult.ListID != 0 {
-					list, err := getlist(client, v.Listresult.ListID)
-					if err != nil {
-						chanerr <- err
-					} else {
-						chanerr <- nil
-						mutex.Lock()
-						ret[v.Listresult] = list
-						mutex.Unlock()
-					}
-				} else {
-					chanerr <- nil
-					mutex.Lock()
-					ret[v.Listresult] = []int64{}
-					mutex.Unlock()
-				}
-				syn.Done()
-			}()
+			go getlistmembers(v.Listresult, client, chanerr, &ret, &mutex)
+		} else {
+			chanerr <- nil
 		}
 	}
 
-	for _, _ = range jobs {
+	var err error
+	for i := 0; i < len(jobs)*3; i++ {
 		select {
 		case v := <-chanerr:
 			{
 				if v != nil {
-					return ret, v
+					err = v
 				}
 			}
 		}
 	}
-	syn.Wait()
-	return ret, nil
+	return ret, err
 }
 
 func querytask(queryparam Query, client *twitter.Client) error {
 
+	//今の状態
 	listarr, err := getalllist(queryparam.Jobs, client)
 	if err != nil {
 		log.Println(err.Error())
@@ -138,9 +124,8 @@ func querytask(queryparam Query, client *twitter.Client) error {
 	}
 	spew.Dump(listarr)
 
-	for _, v := range queryparam.Jobs {
-		jobtask(v, &listarr, client)
-	}
-
+	//完成形
+	listcompletion := jobstask(queryparam.Jobs, listarr)
+	_ = listcompletion
 	return nil
 }
