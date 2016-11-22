@@ -25,8 +25,8 @@ function submit(){
 	var list2 = $("#user2select option:selected").val();
 	var user3 = $("#user3").val();
 	var list3 = $("#list3").val();
-	$.post("/api/query",{query:'{"jobs":[{"operator":"*","saveflag":false,"list1":{"ownerid":729699143690551298,"listid":782964049453588480,"name":"test"},"list2":{"ownerid":729699143690551298,"listid":782964128709160960,"name":"test"},"listresult":{"ownerid":729699143690551298,"listid":783026662086619136,"name":"test"}}],"regular":"false"}'});
-//	$.post("/api/query",{query:
+	$.post("/api/query",{query:'{"jobs":[{"operator":"+","list1":{"listid":782964049453588480},"list2":{"listid":782964128709160960},"listresult":{"listid":782964128709160960},"config":{"name":"resultname","publicflag":true,"saveflag":true}}],"regular":false}'});
+	//	$.post("/api/query",{query:
 //			'{"Operator":"+","List1":{"Listname":"' + list1 + '","OwnerScreenName":"' + user1 + '","OwnerId":0},"List2":{"Listname":"' + list2 + '","OwnerScreenName":"' + user2 + '","OwnerId":0},"ResultList":{"Listname":"' + list3 + '","OwnerScreenName":"' + user3 + '","OwnerId":0}}'
 //	})
 }

@@ -54,7 +54,6 @@ func except(l1, l2 []int64) (ret []int64) {
 }
 
 func jobstask(jobs []Job, ret map[List][]int64) map[List][]int64 {
-
 	for _, v := range jobs {
 		l1 := ret[v.List1]
 		l2 := ret[v.List2]
@@ -67,6 +66,5 @@ func jobstask(jobs []Job, ret map[List][]int64) map[List][]int64 {
 			ret[v.Listresult] = except(l1, l2)
 		}
 	}
-
 	return ret
 }

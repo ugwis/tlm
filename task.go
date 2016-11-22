@@ -114,6 +114,18 @@ func getalllist(jobs []Job, client *twitter.Client) (map[List][]int64, error) {
 	return ret, err
 }
 
+func makechangelist(jobs []Job, listcompletion, listarr map[List][]int64) map[List]Change {
+	ret := make(map[List]Change)
+	for _, v := range jobs {
+		if v.Config.Saveflag {
+			ret[v.Listresult] = Change{
+				AddList: except(listcompletion[v.Listresult], listarr[v.Listresult]),
+				DelList: except(listarr[v.Listresult], listcompletion[v.Listresult])}
+		}
+	}
+	return ret
+}
+
 func querytask(queryparam Query, client *twitter.Client) error {
 
 	//今の状態
@@ -122,10 +134,17 @@ func querytask(queryparam Query, client *twitter.Client) error {
 		log.Println(err.Error())
 		return err
 	}
-	spew.Dump(listarr)
 
 	//完成形
-	listcompletion := jobstask(queryparam.Jobs, listarr)
-	_ = listcompletion
+	param := make(map[List][]int64)
+	for k, v := range listarr {
+		param[k] = v
+	}
+	listcompletion := jobstask(queryparam.Jobs, param)
+
+	changelist := makechangelist(queryparam.Jobs, listcompletion, listarr)
+
+	spew.Dump(changelist)
+	_ = changelist
 	return nil
 }

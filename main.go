@@ -133,10 +133,6 @@ func query(c *gin.Context) {
 
 	client := twitter.NewClient(&consumer, &token)
 
-	//CredentialsにConsumerTokenを代入するための苦肉の策。
-	//消したい
-	client.RequestTokenURL("")
-
 	err = querytask(queryone, client)
 	if err != nil {
 		c.JSON(500, gin.H{"status": "error", "data": err.Error()})
