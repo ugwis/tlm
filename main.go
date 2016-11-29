@@ -17,7 +17,7 @@ import (
 
 var (
 	config     Config
-	clientmain *twitter.Client
+	clientmain *twtr.Client
 )
 
 func loadconfig() []byte {
@@ -131,7 +131,7 @@ func query(c *gin.Context) {
 	consumer := oauth.Credentials{Token: config.ConsumerKey, Secret: config.ConsumerSecret}
 	token := oauth.Credentials{Token: OauthToken, Secret: OauthTokenSecret}
 
-	client := twitter.NewClient(&consumer, &token)
+	client := twtr.NewClient(&consumer, &token)
 
 	err = querytask(queryone, client)
 	if err != nil {
@@ -144,7 +144,7 @@ func query(c *gin.Context) {
 func main() {
 	config = loadyaml()
 	consumer := oauth.Credentials{Token: config.ConsumerKey, Secret: config.ConsumerSecret}
-	clientmain = twitter.NewClient(&consumer, nil)
+	clientmain = twtr.NewClient(&consumer, nil)
 
 	_ = clientmain
 	r := gin.Default()

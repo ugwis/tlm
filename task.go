@@ -17,7 +17,7 @@ type taglistnode struct {
 	ok   bool
 }
 
-func getlist(client *twitter.Client, id int64) ([]int64, error) {
+func getlist(client *twtr.Client, id int64) ([]int64, error) {
 
 	data, err := client.GetListMembers(url.Values{
 		"list_id": {strconv.FormatInt(id, 10)},
@@ -37,7 +37,7 @@ func getlist(client *twitter.Client, id int64) ([]int64, error) {
 	return ret, nil
 }
 
-func getlistmembers(listarg List, client *twitter.Client,
+func getlistmembers(listarg List, client *twtr.Client,
 	chanerr chan error, ret *map[List][]int64, mutex *sync.Mutex) {
 	list := []int64{}
 
@@ -77,7 +77,7 @@ func getlistmembers(listarg List, client *twitter.Client,
 	chanerr <- nil
 }
 
-func getalllist(jobs []Job, client *twitter.Client) (map[List][]int64, error) {
+func getalllist(jobs []Job, client *twtr.Client) (map[List][]int64, error) {
 	var mutex sync.Mutex
 	ret := make(map[List][]int64)
 	chanerr := make(chan error, len(jobs)*3+1)
@@ -114,19 +114,7 @@ func getalllist(jobs []Job, client *twitter.Client) (map[List][]int64, error) {
 	return ret, err
 }
 
-func makechangelist(jobs []Job, listcompletion, listarr map[List][]int64) map[List]Change {
-	ret := make(map[List]Change)
-	for _, v := range jobs {
-		if v.Config.Saveflag {
-			ret[v.Listresult] = Change{
-				AddList: except(listcompletion[v.Listresult], listarr[v.Listresult]),
-				DelList: except(listarr[v.Listresult], listcompletion[v.Listresult])}
-		}
-	}
-	return ret
-}
-
-func querytask(queryparam Query, client *twitter.Client) error {
+func querytask(queryparam Query, client *twtr.Client) error {
 
 	//今の状態
 	listarr, err := getalllist(queryparam.Jobs, client)
@@ -142,9 +130,6 @@ func querytask(queryparam Query, client *twitter.Client) error {
 	}
 	listcompletion := jobstask(queryparam.Jobs, param)
 
-	changelist := makechangelist(queryparam.Jobs, listcompletion, listarr)
-
-	spew.Dump(changelist)
-	_ = changelist
+	spew.Dump(listcompletion)
 	return nil
 }
