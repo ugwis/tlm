@@ -1,6 +1,9 @@
 package main
 
-func intersect(l1, l2 []int64) (ret []int64) {
+import "github.com/bgpat/twtr"
+
+func intersect(l1, l2 []int64) []int64 {
+	ret := make([]int64, 0)
 	i, j := 0, 0
 	for i < len(l1) && j < len(l2) {
 		if l1[i] == l2[j] {
@@ -13,10 +16,11 @@ func intersect(l1, l2 []int64) (ret []int64) {
 			j++
 		}
 	}
-	return
+	return ret
 }
 
-func union(l1, l2 []int64) (ret []int64) {
+func union(l1, l2 []int64) []int64 {
+	ret := make([]int64, 0)
 	i, j := 0, 0
 	for i < len(l1) && j < len(l2) {
 		if l1[i] == l2[j] {
@@ -33,10 +37,11 @@ func union(l1, l2 []int64) (ret []int64) {
 	}
 	ret = append(ret, l1[i:]...)
 	ret = append(ret, l2[j:]...)
-	return
+	return ret
 }
 
-func except(l1, l2 []int64) (ret []int64) {
+func except(l1, l2 []int64) []int64 {
+	ret := make([]int64, 0)
 	i, j := 0, 0
 	for i < len(l1) && j < len(l2) {
 		if l1[i] == l2[j] {
@@ -50,11 +55,12 @@ func except(l1, l2 []int64) (ret []int64) {
 		}
 	}
 	ret = append(ret, l1[i:]...)
-	return
+	return ret
 }
 
-func jobstask(jobs []Job, origin map[List][]int64) (ret map[int64]Change) {
+func jobstask(client *twtr.Client, jobs []Job, origin map[List][]int64) (map[int64]Change, error) {
 	listids := make(map[List]int64)
+	ret := make(map[int64]Change)
 
 	result := make(map[List][]int64, len(origin))
 	for k, v := range origin {
@@ -81,13 +87,30 @@ func jobstask(jobs []Job, origin map[List][]int64) (ret map[int64]Change) {
 			listid, ok := listids[v.Listresult]
 			if !ok {
 				listid = v.Listresult.ListID
+
 				if listid == 0 {
-					//listid=createlist()
+					var mode string
+					if v.Config.Publicflag {
+						mode = "public"
+					} else {
+						mode = "private"
+					}
+
+					list, err := client.CreateList(twtr.Values{
+						"name": v.Config.Name,
+						"mode": mode,
+					})
+
+					if err != nil {
+						return nil, err
+					}
+
+					listid = list.ID
 				}
 				listids[v.Listresult] = listid
 			}
 			ret[listid] = addval
 		}
 	}
-	return
+	return ret, nil
 }

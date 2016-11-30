@@ -2,14 +2,12 @@ package main
 
 import (
 	"log"
-	"net/url"
 	"sort"
 	"strconv"
 	"sync"
 
 	"github.com/bgpat/twtr"
 	"github.com/cznic/sortutil"
-	"github.com/davecgh/go-spew/spew"
 )
 
 type taglistnode struct {
@@ -19,9 +17,9 @@ type taglistnode struct {
 
 func getlist(client *twtr.Client, id int64) ([]int64, error) {
 
-	data, err := client.GetListMembers(url.Values{
-		"list_id": {strconv.FormatInt(id, 10)},
-		"count":   {"5000"},
+	data, err := client.GetListMembers(twtr.Values{
+		"list_id": strconv.FormatInt(id, 10),
+		"count":   "5000",
 	})
 
 	if err != nil {
@@ -128,8 +126,14 @@ func querytask(queryparam Query, client *twtr.Client) error {
 	for k, v := range listarr {
 		param[k] = v
 	}
-	listcompletion := jobstask(queryparam.Jobs, param)
+	commitlist, err := jobstask(client, queryparam.Jobs, param)
+	if err != nil {
+		return err
+	}
 
-	spew.Dump(listcompletion)
+	err = commit(client, commitlist)
+	if err != nil {
+		return err
+	}
 	return nil
 }
