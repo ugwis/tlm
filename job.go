@@ -37,6 +37,7 @@ func union(l1, l2 []int64) []int64 {
 	}
 	ret = append(ret, l1[i:]...)
 	ret = append(ret, l2[j:]...)
+
 	return ret
 }
 
@@ -100,7 +101,6 @@ func jobstask(client *twtr.Client, jobs []Job, origin map[List][]int64) (map[int
 						"name": v.Config.Name,
 						"mode": mode,
 					})
-
 					if err != nil {
 						return nil, err
 					}

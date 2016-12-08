@@ -49,13 +49,12 @@ func getlistmembers(listarg List, client *twtr.Client,
 	}
 
 	/*
-		Golang1.7.4から以下の構文が入るかもしれない？
+		//Golang1.8から以下の構文が入るかもしれない？
 
 		sort.Slice(list, func(i, j int64) bool {
 			return i < j
 		})
 	*/
-
 	/*
 		入るまでのつなぎ。
 	*/

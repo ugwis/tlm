@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/bgpat/twtr"
-	"github.com/davecgh/go-spew/spew"
 )
 
 func min(a, b int) int {
@@ -25,7 +24,7 @@ func commit(client *twtr.Client, change map[int64]Change) error {
 				list = append(list, strconv.FormatInt(one, 10))
 			}
 			v.DelList = v.DelList[min(100, len(v.DelList)):]
-			err := client.DelListMembers(twtr.Values{
+			_, err := client.DeleteListMembers(twtr.Values{
 				"list_id": strconv.FormatInt(id, 10),
 				"user_id": strings.Join(list[:], ","),
 			})
@@ -36,12 +35,11 @@ func commit(client *twtr.Client, change map[int64]Change) error {
 		for len(v.AddList) != 0 {
 			list := make([]string, 0, 100)
 			handled := v.AddList[:min(100, len(v.AddList))]
-			spew.Dump(handled)
 			for _, one := range handled {
 				list = append(list, strconv.FormatInt(one, 10))
 			}
 			v.AddList = v.AddList[min(100, len(v.AddList)):]
-			err := client.AddListMembers(twtr.Values{
+			_, err := client.AddListMembers(twtr.Values{
 				"list_id": strconv.FormatInt(id, 10),
 				"user_id": strings.Join(list[:], ","),
 			})
