@@ -10,13 +10,27 @@ import (
 func min(a, b int) int {
 	if a < b {
 		return a
-	} else {
-		return b
 	}
+	return b
 }
 
 func commit(client *twtr.Client, change map[int64]Change) error {
 	for id, v := range change {
+		i := 0
+		for {
+			_, err := client.GetList(twtr.Values{
+				"list_id": strconv.FormatInt(id, 10),
+			})
+			if err != nil {
+				//5回リストがあるかどうかチェックして、それでも無ければerrorとして返す。
+				i++
+				if i > 5 {
+					return err
+				}
+			} else {
+				break
+			}
+		}
 		for len(v.DelList) != 0 {
 			list := make([]string, 0, 100)
 			handled := v.DelList[:min(100, len(v.DelList))]

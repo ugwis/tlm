@@ -3,6 +3,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"net/http"
 	//	"sync"
@@ -97,17 +98,9 @@ func callback(c *gin.Context) {
 	c.Redirect(301, "/")
 }
 
-func query(c *gin.Context) {
+func createclient(c *gin.Context) (*twtr.Client, error) {
 	if !checklogin(c) {
-		c.JSON(401, gin.H{"status": "error", "data": "Not login"})
-		return
-	}
-	querystring := c.PostForm("query")
-	var queryone Query
-	err := json.Unmarshal([]byte(querystring), &queryone)
-	if err != nil {
-		c.JSON(500, gin.H{"status": "error", "data": err.Error()})
-		return
+		return nil, errors.New("Not login")
 	}
 
 	session := sessions.Default(c)
@@ -116,29 +109,57 @@ func query(c *gin.Context) {
 	if session.Get("OauthToken") != nil {
 		OauthToken = session.Get("OauthToken").(string)
 	} else {
-		c.JSON(401, gin.H{"status": "error", "data": "Not login"})
-		//c.Redirect(304, "/logout")
-		return
+		return nil, errors.New("Not login")
 	}
 	if session.Get("OauthTokenSecret") != nil {
 		OauthTokenSecret = session.Get("OauthTokenSecret").(string)
 	} else {
-		c.JSON(401, gin.H{"status": "error", "data": "Not login"})
-		//c.Redirect(304, "/logout")
-		return
+		return nil, errors.New("Not login")
 	}
 
 	consumer := oauth.Credentials{Token: config.ConsumerKey, Secret: config.ConsumerSecret}
 	token := oauth.Credentials{Token: OauthToken, Secret: OauthTokenSecret}
 
-	client := twtr.NewClient(&consumer, &token)
+	return twtr.NewClient(&consumer, &token), nil
+}
 
+func query(c *gin.Context) {
+
+	querystring := c.PostForm("query")
+	var queryone Query
+	err := json.Unmarshal([]byte(querystring), &queryone)
+	if err != nil {
+		c.JSON(500, gin.H{"status": "error", "data": err.Error()})
+		return
+	}
+	client, err := createclient(c)
+	if err != nil {
+		c.JSON(500, gin.H{"status": "error", "data": err.Error()})
+		return
+	}
 	err = querytask(queryone, client)
 	if err != nil {
 		c.JSON(500, gin.H{"status": "error", "data": err.Error()})
 		return
 	}
 	c.JSON(200, queryone)
+}
+
+func userlist(c *gin.Context) {
+	client, err := createclient(c)
+	if err != nil {
+		c.JSON(500, gin.H{"status": "error", "data": err.Error()})
+		return
+	}
+	userid := c.PostForm("userid")
+	lists, err := client.GetLists(twtr.Values{
+		"userid": userid,
+	})
+	if err != nil {
+		c.JSON(500, gin.H{"status": "error", "data": err.Error()})
+		return
+	}
+	c.JSON(200, lists)
 }
 
 func main() {
@@ -162,6 +183,7 @@ func main() {
 	rapi := r.Group("/api")
 	{
 		rapi.POST("/query", query)
+		rapi.POST("/userlist", userlist)
 	}
 
 	r.Run()

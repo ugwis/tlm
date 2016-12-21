@@ -3,7 +3,7 @@ package main
 import "github.com/bgpat/twtr"
 
 func intersect(l1, l2 []int64) []int64 {
-	ret := make([]int64, 0)
+	var ret []int64
 	i, j := 0, 0
 	for i < len(l1) && j < len(l2) {
 		if l1[i] == l2[j] {
@@ -20,7 +20,7 @@ func intersect(l1, l2 []int64) []int64 {
 }
 
 func union(l1, l2 []int64) []int64 {
-	ret := make([]int64, 0)
+	var ret []int64
 	i, j := 0, 0
 	for i < len(l1) && j < len(l2) {
 		if l1[i] == l2[j] {
@@ -42,7 +42,7 @@ func union(l1, l2 []int64) []int64 {
 }
 
 func except(l1, l2 []int64) []int64 {
-	ret := make([]int64, 0)
+	var ret []int64
 	i, j := 0, 0
 	for i < len(l1) && j < len(l2) {
 		if l1[i] == l2[j] {
