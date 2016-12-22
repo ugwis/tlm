@@ -12,6 +12,21 @@ type Change struct {
 	DelList []int64
 }
 
+type Adlib struct {
+	List    List    `json:"list"`
+	UserIDs []int64 `json:"userids"`
+}
+
+type Follower struct {
+	List   List  `json:"list"`
+	UserID int64 `json:"userid"`
+}
+
+type Preparation struct {
+	Adlib    []Adlib    `json:"adlib"`
+	Follower []Follower `json:"follower"`
+}
+
 type List struct {
 	OwnerID int64  `json:"ownerid"`
 	ListID  int64  `json:"listid"`
@@ -33,6 +48,7 @@ type Job struct {
 }
 
 type Query struct {
-	Jobs        []Job `json:"jobs"`
-	Regularflag bool  `json:"regularflag"`
+	Preparation Preparation `json:"preparation"`
+	Jobs        []Job       `json:"jobs"`
+	Regularflag bool        `json:"regularflag"`
 }

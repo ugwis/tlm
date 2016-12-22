@@ -111,21 +111,33 @@ func getalllist(jobs []Job, client *twtr.Client) (map[List][]int64, error) {
 	return ret, err
 }
 
+func prepare(p Preparation, client *twtr.Client) (map[List][]int64, error) {
+	ret := make(map[List][]int64)
+	for _, v := range p.Adlib {
+		ret[v.List] = v.UserIDs
+	}
+
+	//ここでフォロワー一覧のIDを取ってくる
+
+	return ret, nil
+}
+
 func querytask(queryparam Query, client *twtr.Client) error {
 
 	//今の状態
+	preparearr, err := prepare(queryparam.Preparation, client)
+
 	listarr, err := getalllist(queryparam.Jobs, client)
 	if err != nil {
 		log.Println(err.Error())
 		return err
 	}
 
-	//完成形
-	param := make(map[List][]int64)
 	for k, v := range listarr {
-		param[k] = v
+		preparearr[k] = v
 	}
-	commitlist, err := jobstask(client, queryparam.Jobs, param)
+
+	commitlist, err := jobstask(client, queryparam.Jobs, preparearr)
 	if err != nil {
 		return err
 	}
