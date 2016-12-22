@@ -8,6 +8,8 @@ import (
 	"net/http"
 	//	"sync"
 
+	q "github.com/Goryudyuma/tlm/lib/query"
+
 	"github.com/bgpat/twtr"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/garyburd/go-oauth/oauth"
@@ -126,8 +128,8 @@ func createclient(c *gin.Context) (*twtr.Client, error) {
 func query(c *gin.Context) {
 
 	querystring := c.PostForm("query")
-	var queryone Query
-	err := json.Unmarshal([]byte(querystring), &queryone)
+	var jsonquery q.JsonQuery
+	err := json.Unmarshal([]byte(querystring), &jsonquery)
 	if err != nil {
 		c.JSON(500, gin.H{"status": "error", "data": err.Error()})
 		return
@@ -137,12 +139,16 @@ func query(c *gin.Context) {
 		c.JSON(500, gin.H{"status": "error", "data": err.Error()})
 		return
 	}
-	err = querytask(queryone, client)
+
+	var queryone q.Query
+	queryone.New(jsonquery)
+	err = queryone.Querytask(client)
+
 	if err != nil {
 		c.JSON(500, gin.H{"status": "error", "data": err.Error()})
 		return
 	}
-	c.JSON(200, queryone)
+	c.JSON(200, gin.H{"status": "ok", "data": ""})
 }
 
 func userlist(c *gin.Context) {
