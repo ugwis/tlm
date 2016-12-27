@@ -10,6 +10,53 @@ import (
 	"github.com/bgpat/twtr"
 )
 
+func (v Job) dojob(client *twtr.Client, result, origin *map[list.List]user.UserIDs,
+	ret *map[list.ListID]change.Change, listids *map[list.List]list.ListID) error {
+	l1 := (*result)[v.List1]
+	l2 := (*result)[v.List2]
+	switch v.Operator {
+	case "*":
+		(*result)[v.Listresult] = l1.Intersect(l2)
+	case "+":
+		(*result)[v.Listresult] = l1.Union(l2)
+	case "-":
+		(*result)[v.Listresult] = l1.Except(l2)
+	}
+
+	if v.Config.Saveflag {
+		addval := change.Change{
+			AddList: (*result)[v.Listresult].Except((*origin)[v.Listresult]),
+			DelList: (*origin)[v.Listresult].Except((*result)[v.Listresult])}
+
+		listid, ok := (*listids)[v.Listresult]
+		if !ok {
+			listid = v.Listresult.ListID
+
+			if listid == 0 {
+				var mode string
+				if v.Config.Publicflag {
+					mode = "public"
+				} else {
+					mode = "private"
+				}
+
+				createlist, err := client.CreateList(twtr.Values{
+					"name": v.Config.Name,
+					"mode": mode,
+				})
+				if err != nil {
+					return err
+				}
+
+				listid = list.ListID(createlist.ID)
+			}
+			(*listids)[v.Listresult] = listid
+		}
+		(*ret)[listid] = addval
+	}
+	return nil
+}
+
 func (jobs Jobs) Task(client *twtr.Client, origin map[list.List]user.UserIDs) (
 	change.Changes, error) {
 	listids := make(map[list.List]list.ListID)
@@ -21,48 +68,7 @@ func (jobs Jobs) Task(client *twtr.Client, origin map[list.List]user.UserIDs) (
 	}
 
 	for _, v := range jobs {
-		l1 := result[v.List1]
-		l2 := result[v.List2]
-		switch v.Operator {
-		case "*":
-			result[v.Listresult] = l1.Intersect(l2)
-		case "+":
-			result[v.Listresult] = l1.Union(l2)
-		case "-":
-			result[v.Listresult] = l1.Except(l2)
-		}
-
-		if v.Config.Saveflag {
-			addval := change.Change{
-				AddList: result[v.Listresult].Except(origin[v.Listresult]),
-				DelList: origin[v.Listresult].Except(result[v.Listresult])}
-
-			listid, ok := listids[v.Listresult]
-			if !ok {
-				listid = v.Listresult.ListID
-
-				if listid == 0 {
-					var mode string
-					if v.Config.Publicflag {
-						mode = "public"
-					} else {
-						mode = "private"
-					}
-
-					createlist, err := client.CreateList(twtr.Values{
-						"name": v.Config.Name,
-						"mode": mode,
-					})
-					if err != nil {
-						return nil, err
-					}
-
-					listid = list.ListID(createlist.ID)
-				}
-				listids[v.Listresult] = listid
-			}
-			ret[listid] = addval
-		}
+		v.dojob(client, &result, &origin, &ret, &listids)
 	}
 	return ret, nil
 }
