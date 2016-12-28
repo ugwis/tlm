@@ -73,27 +73,31 @@ func (jobs Jobs) Task(client *twtr.Client, origin map[list.List]user.UserIDs) (
 	return ret, nil
 }
 
+func (job Job) GetListMember(client *twtr.Client, ret *map[list.List]user.UserIDs, chanerr chan error, mutex *sync.Mutex) {
+	if _, ok := (*ret)[job.List1]; !ok {
+		go job.List1.GetListMembers(client, chanerr, ret, mutex)
+	} else {
+		chanerr <- nil
+	}
+	if _, ok := (*ret)[job.List2]; !ok {
+		go job.List2.GetListMembers(client, chanerr, ret, mutex)
+	} else {
+		chanerr <- nil
+	}
+	if _, ok := (*ret)[job.Listresult]; !ok {
+		go job.Listresult.GetListMembers(client, chanerr, ret, mutex)
+	} else {
+		chanerr <- nil
+	}
+}
+
 func (j Jobs) Getalllist(client *twtr.Client) (map[list.List]user.UserIDs, error) {
 	var mutex sync.Mutex
 	ret := make(map[list.List]user.UserIDs)
 	chanerr := make(chan error, len(j)*3+1)
 	defer close(chanerr)
 	for _, v := range j {
-		if _, ok := ret[v.List1]; !ok {
-			go v.List1.GetListMembers(client, chanerr, &ret, &mutex)
-		} else {
-			chanerr <- nil
-		}
-		if _, ok := ret[v.List2]; !ok {
-			go v.List2.GetListMembers(client, chanerr, &ret, &mutex)
-		} else {
-			chanerr <- nil
-		}
-		if _, ok := ret[v.Listresult]; !ok {
-			go v.Listresult.GetListMembers(client, chanerr, &ret, &mutex)
-		} else {
-			chanerr <- nil
-		}
+		v.GetListMember(client, &ret, chanerr, &mutex)
 	}
 
 	var err error
