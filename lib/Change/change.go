@@ -18,7 +18,7 @@ func (change Changes) Commit(client *twtr.Client) error {
 	for id, v := range change {
 		i := 0
 		for {
-			_, err := client.GetList(twtr.Values{
+			_, err := client.GetList(&twtr.Values{
 				"list_id": strconv.FormatInt(int64(id), 10),
 			})
 			if err != nil {
@@ -38,7 +38,7 @@ func (change Changes) Commit(client *twtr.Client) error {
 				list = append(list, strconv.FormatInt(int64(one), 10))
 			}
 			v.DelList = v.DelList[min(100, len(v.DelList)):]
-			_, err := client.DeleteListMembers(twtr.Values{
+			_, err := client.DeleteListMembers(&twtr.Values{
 				"list_id": strconv.FormatInt(int64(id), 10),
 				"user_id": strings.Join(list[:], ","),
 			})
@@ -53,7 +53,7 @@ func (change Changes) Commit(client *twtr.Client) error {
 				list = append(list, strconv.FormatInt(int64(one), 10))
 			}
 			v.AddList = v.AddList[min(100, len(v.AddList)):]
-			_, err := client.AddListMembers(twtr.Values{
+			_, err := client.AddListMembers(&twtr.Values{
 				"list_id": strconv.FormatInt(int64(id), 10),
 				"user_id": strings.Join(list[:], ","),
 			})

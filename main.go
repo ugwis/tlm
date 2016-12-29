@@ -158,7 +158,7 @@ func userlist(c *gin.Context) {
 		return
 	}
 	userid := c.PostForm("userid")
-	lists, err := client.GetLists(twtr.Values{
+	lists, err := client.GetLists(&twtr.Values{
 		"userid": userid,
 	})
 	if err != nil {

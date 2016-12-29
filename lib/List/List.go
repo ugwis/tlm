@@ -13,7 +13,7 @@ import (
 
 func (listid ListID) Getlist(client *twtr.Client) (user.UserIDs, error) {
 
-	data, err := client.GetListMembers(twtr.Values{
+	data, err := client.GetListMembers(&twtr.Values{
 		"list_id": strconv.FormatInt(int64(listid), 10),
 		"count":   "5000",
 	})
@@ -25,7 +25,7 @@ func (listid ListID) Getlist(client *twtr.Client) (user.UserIDs, error) {
 	ret := make(user.UserIDs, len(data.Users))
 
 	for _, v := range data.Users {
-		ret = append(ret, user.UserID(v.ID))
+		ret = append(ret, user.UserID(v.ID.ID))
 	}
 
 	return ret, nil

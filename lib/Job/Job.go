@@ -40,7 +40,7 @@ func (v Job) dojob(client *twtr.Client, result, origin *map[list.List]user.UserI
 					mode = "private"
 				}
 
-				createlist, err := client.CreateList(twtr.Values{
+				createlist, err := client.CreateList(&twtr.Values{
 					"name": v.Config.Name,
 					"mode": mode,
 				})
@@ -48,7 +48,7 @@ func (v Job) dojob(client *twtr.Client, result, origin *map[list.List]user.UserI
 					return err
 				}
 
-				listid = list.ListID(createlist.ID)
+				listid = list.ListID(createlist.ID.ID)
 			}
 			(*listids)[v.Listresult] = listid
 		}
