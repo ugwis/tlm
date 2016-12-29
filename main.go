@@ -151,6 +151,32 @@ func query(c *gin.Context) {
 	c.JSON(200, gin.H{"status": "ok", "data": ""})
 }
 
+func searchuser(c *gin.Context) {
+	client, err := createclient(c)
+	if err != nil {
+		c.JSON(500, gin.H{"status": "error", "data": err.Error()})
+		return
+	}
+
+	username := c.PostForm("username")
+	users, err := client.SearchUsers(&twtr.Values{
+		"q":     username,
+		"count": "100",
+	})
+	if err != nil {
+		c.JSON(500, gin.H{"status": "error", "data": err.Error()})
+		return
+	}
+	var ret [][2]string
+	for _, v := range users {
+		ret = append(ret, [2]string{
+			v.ScreenName,
+			v.IDStr,
+		})
+	}
+	c.JSON(200, ret)
+}
+
 func userlist(c *gin.Context) {
 	client, err := createclient(c)
 	if err != nil {
@@ -159,7 +185,7 @@ func userlist(c *gin.Context) {
 	}
 	userid := c.PostForm("userid")
 	lists, err := client.GetLists(&twtr.Values{
-		"userid": userid,
+		"user_id": userid,
 	})
 	if err != nil {
 		c.JSON(500, gin.H{"status": "error", "data": err.Error()})
@@ -190,6 +216,7 @@ func main() {
 	{
 		rapi.POST("/query", query)
 		rapi.POST("/userlist", userlist)
+		rapi.POST("/searchuser", searchuser)
 	}
 
 	r.Run()

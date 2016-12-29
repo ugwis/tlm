@@ -1,9 +1,11 @@
 package preparation
 
-import "github.com/Goryudyuma/tlm/lib/List"
-import "github.com/Goryudyuma/tlm/lib/User"
+import (
+	"github.com/Goryudyuma/tlm/lib/List"
+	"github.com/Goryudyuma/tlm/lib/User"
 
-import "github.com/bgpat/twtr"
+	"github.com/bgpat/twtr"
+)
 
 func (p Preparation) Prepare(client *twtr.Client) (map[list.List]user.UserIDs, error) {
 	ret := make(map[list.List]user.UserIDs)

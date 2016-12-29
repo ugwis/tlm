@@ -9,10 +9,18 @@ function fetch_user_lists(obj){
 		var screen_name = $(obj).val();
 		var selector = $("#"+$(obj).attr('id')+"select");
 		selector.empty();
+		/*
 		$.post("/api/userlist",{userid:screen_name},function(result){
 			var json = result;
 			for(var i in json){
 				selector.append($("<option>").text(json[i].slug));
+			}
+		});
+		*/
+		$.post("/api/searchuser",{username:screen_name},function(result){
+			var json = result;
+			for(var i in json){
+				selector.append($("<option>").text(json[i][0]));
 			}
 		});
 	}
