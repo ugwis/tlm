@@ -211,6 +211,7 @@ func main() {
 	r.GET("/login", login)
 	r.GET("/logout", logout)
 	r.GET("/callback", callback)
+	r.Static("/test", "content")
 
 	rapi := r.Group("/api")
 	{
