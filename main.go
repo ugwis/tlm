@@ -174,7 +174,7 @@ func searchuser(c *gin.Context) {
 			v.IDStr,
 		})
 	}
-	c.JSON(200, ret)
+	c.JSON(200, gin.H{"status": "ok", "data": ret})
 }
 
 func userlist(c *gin.Context) {
@@ -191,7 +191,32 @@ func userlist(c *gin.Context) {
 		c.JSON(500, gin.H{"status": "error", "data": err.Error()})
 		return
 	}
-	c.JSON(200, lists)
+	c.JSON(200, gin.H{"status": "ok", "data": lists})
+}
+
+func getusers(c *gin.Context) {
+	client, err := createclient(c)
+	if err != nil {
+		c.JSON(500, gin.H{"status": "error", "data": err.Error()})
+		return
+	}
+	userids := c.PostForm("userids")
+	users, err := client.GetUsers(&twtr.Values{
+		"user_id": userids,
+	})
+	if err != nil {
+		c.JSON(500, gin.H{"status": "error", "data": err.Error()})
+		return
+	}
+
+	var ret [][2]string
+	for _, v := range users {
+		ret = append(ret, [2]string{
+			v.ScreenName,
+			v.IDStr,
+		})
+	}
+	c.JSON(200, gin.H{"status": "ok", "data": ret})
 }
 
 func main() {
@@ -201,7 +226,7 @@ func main() {
 
 	_ = clientmain
 	r := gin.Default()
-	r.LoadHTMLGlob("content/*")
+	r.LoadHTMLGlob("content/index.html")
 
 	store := sessions.NewCookieStore([]byte(config.SeedString))
 	//store.Options(sessions.Options{Secure: true})
@@ -211,13 +236,14 @@ func main() {
 	r.GET("/login", login)
 	r.GET("/logout", logout)
 	r.GET("/callback", callback)
-	r.Static("/test", "content")
+	r.Static("/test", "./content")
 
 	rapi := r.Group("/api")
 	{
 		rapi.POST("/query", query)
 		rapi.POST("/userlist", userlist)
 		rapi.POST("/searchuser", searchuser)
+		rapi.POST("/getusers", getusers)
 	}
 
 	r.Run()
