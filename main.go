@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"io/ioutil"
-	"net/http"
 	//	"sync"
 
 	q "github.com/Goryudyuma/tlm/lib/query"
@@ -56,7 +55,8 @@ func getroot(c *gin.Context) {
 		c.Header("Cache-Control", "no-cache, no-store, must-revalidate")
 		c.Redirect(301, "/login")
 	} else {
-		c.HTML(http.StatusOK, "index.html", gin.H{})
+		c.Redirect(301, "/test/main.html")
+		//c.HTML(http.StatusOK, "index.html", gin.H{})
 	}
 }
 
@@ -128,6 +128,12 @@ func createclient(c *gin.Context) (*twtr.Client, error) {
 func query(c *gin.Context) {
 
 	querystring := c.PostForm("query")
+	spew.Dump(querystring)
+	if querystring == "" {
+		c.JSON(500, gin.H{"status": "error", "data": "Query parameters are missing."})
+		return
+	}
+
 	var jsonquery q.JsonQuery
 	err := json.Unmarshal([]byte(querystring), &jsonquery)
 	if err != nil {
@@ -159,6 +165,12 @@ func searchuser(c *gin.Context) {
 	}
 
 	username := c.PostForm("username")
+
+	if username == "" {
+		c.JSON(500, gin.H{"status": "error", "data": "Query parameters are missing."})
+		return
+	}
+
 	users, err := client.SearchUsers(&twtr.Values{
 		"q":     username,
 		"count": "100",
@@ -184,6 +196,12 @@ func userlist(c *gin.Context) {
 		return
 	}
 	userid := c.PostForm("userid")
+
+	if userid == "" {
+		c.JSON(500, gin.H{"status": "error", "data": "Query parameters are missing."})
+		return
+	}
+
 	lists, err := client.GetLists(&twtr.Values{
 		"user_id": userid,
 	})
@@ -208,6 +226,12 @@ func getusers(c *gin.Context) {
 		return
 	}
 	userids := c.PostForm("userids")
+
+	if userids == "" {
+		c.JSON(500, gin.H{"status": "error", "data": "Query parameters are missing."})
+		return
+	}
+
 	users, err := client.GetUsers(&twtr.Values{
 		"user_id": userids,
 	})

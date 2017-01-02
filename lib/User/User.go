@@ -29,7 +29,7 @@ func (one UserIDs) Union(another UserIDs) UserIDs {
 			ret = append(ret, one[i])
 			i++
 		} else {
-			ret = append(ret, another[i])
+			ret = append(ret, another[j])
 			j++
 		}
 	}

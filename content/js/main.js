@@ -6,12 +6,12 @@
 		showscreenname = { showscreenname }
 		registerscreenname = { registerscreenname }
 		/>
-	<follower />
+	<follower if={false}/>
 	<jobs jobs={ query.jobs } patch={ jobpatch }
 		showscreenname = { showscreenname }
 		registerscreenname = { registerscreenname }
 	 />
-	<submit />
+	<submit query={ query } />
 	
 	
 	<script>
@@ -214,7 +214,7 @@
 </jobs>
 
 <job>
-	<a onclick={ remove } class="glyphicon glyphicon-remove"></a>
+	<a onclick={ remove } class="glyphicon glyphicon-remove"></a><br />
 	<joblistselect data={ opts.data.list1 } patch={ list1patch } registerscreenname={opts.registerscreenname} registerlistname={opts.registerlistname} />
 	<form onchange={ operatorchange }>
 	<select id="operator" >
@@ -226,7 +226,9 @@
 	<joblistselect data={ opts.data.list2 } patch={ list2patch } 
 	registerscreenname={opts.registerscreenname} 
 	registerlistname={opts.registerlistname} />
+	<br />
 	=
+	<br />
 	<joblistresult config={ opts.data.config } list={opts.data.listresult}
 		configpatch={ configpatch } listpatch={ listpatch }
 		registerscreenname={opts.registerscreenname} 
@@ -272,6 +274,7 @@
 </job>
 
 <joblistselect>
+	<div style="display:inline-flex">
 	<form onchange={ this.change }>
 	<select id="select" >
 		<option value="Tag" selected>Tag</option>
@@ -286,6 +289,7 @@
 		registerlistname={opts.registerlistname}
 	/>
 	
+	</div>
 	<script>
 		this.type = "Tag";
 		selectlist=[];
@@ -313,31 +317,34 @@
 </joblistselect>
 
 <joblistresult>
-	<form onchange={ this.change }>
-	<select id="select" >
-		<option value="NewSave" selected>NewSave</option>
-		<option value="UpdateSave">UpdateSave</option>
-		<option value="NotSave">NotSave</option>
-	</select>
-	</form>
-	<div if={this.type==="NewSave"}>
-		Name:<input onchange={namechange}>
-		<form onchange={PrivatePubricChange}>
-			<select id="PrivatePubric">
-				<option value="Private">Private</option>
-				<option value="Public">Public</option>	
+	<div style="display:inline-flex">
+		<form onchange={ this.change }>
+			<select id="select" >
+				<option value="NewSave" selected>NewSave</option>
+				<option value="UpdateSave">UpdateSave</option>
+				<option value="NotSave">NotSave</option>
 			</select>
 		</form>
-	</div>
+
+		<div if={this.type==="NewSave"} style="display:inline-flex">
+			Name:<input onchange={namechange}>
+			<form onchange={PrivatePubricChange}>
+				<select id="PrivatePubric">
+					<option value="Private">Private</option>
+					<option value="Public">Public</option>	
+				</select>
+			</form>
+		</div>
 	
-	<!-- loginしているユーザーリストに帰るべき -->
-	<selectlist if={this.type==="UpdateSave"} changelistid={changelistid} 
-		registerscreenname={opts.registerscreenname} 
-		registerlistname={opts.registerlistname}
-	/>
+	<!-- loginしているユーザーリストに変えるべき -->
+		<selectlist if={this.type==="UpdateSave"} changelistid={changelistid} 
+			registerscreenname={opts.registerscreenname} 
+			registerlistname={opts.registerlistname}
+		/>
 	
 	<div if={this.type==="NotSave"}>
 		Tag:<input  onchange={resulttagchange}>
+	</div>
 	</div>
 	
 	<script>
@@ -442,10 +449,27 @@
 		}.bind(this);
 		
 		changelistid(obj) {
-			opts.changelistid(obj.target.value)
+			opts.changelistid(Number(obj.target.value))
 		}
 	</script>
 </selectlist>
 
 <submit>
+	<form onsubmit={ submit } >
+		<button>submit</button>
+	</form>
+	
+	{this.status}
+	
+	<script>
+		status="";
+		submit(e){
+			console.log(opts.query);
+			$.post("/api/query",{query:JSON.stringify(opts.query)},function(result){
+				this.status=result.status;
+				this.update();
+			}.bind(this));
+			return e.preventDefault();
+		}
+	</script>
 </submit>
