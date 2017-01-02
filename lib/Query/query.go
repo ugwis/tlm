@@ -1,9 +1,6 @@
 package query
 
-import (
-	"github.com/bgpat/twtr"
-	"github.com/davecgh/go-spew/spew"
-)
+import "github.com/bgpat/twtr"
 
 func (q Query) Querytask(client *twtr.Client) error {
 	preparearr, err := q.preparation.Prepare(client)
