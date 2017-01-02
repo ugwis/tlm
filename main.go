@@ -191,7 +191,14 @@ func userlist(c *gin.Context) {
 		c.JSON(500, gin.H{"status": "error", "data": err.Error()})
 		return
 	}
-	c.JSON(200, gin.H{"status": "ok", "data": lists})
+	var ret [][2]string
+	for _, v := range lists {
+		ret = append(ret, [2]string{
+			v.Name,
+			v.ID.IDStr,
+		})
+	}
+	c.JSON(200, gin.H{"status": "ok", "data": ret})
 }
 
 func getusers(c *gin.Context) {
