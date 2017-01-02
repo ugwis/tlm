@@ -7,7 +7,7 @@ import (
 	"io/ioutil"
 	//	"sync"
 
-	q "github.com/Goryudyuma/tlm/lib/query"
+	q "github.com/Goryudyuma/tlm/lib/Query"
 
 	"github.com/bgpat/twtr"
 	"github.com/davecgh/go-spew/spew"
