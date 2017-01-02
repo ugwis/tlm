@@ -91,13 +91,12 @@ func (job Job) GetListMember(client *twtr.Client, ret *map[list.List]user.UserID
 	}
 }
 
-func (j Jobs) Getalllist(client *twtr.Client) (map[list.List]user.UserIDs, error) {
+func (j Jobs) Getalllist(client *twtr.Client, ret *map[list.List]user.UserIDs) (map[list.List]user.UserIDs, error) {
 	var mutex sync.Mutex
-	ret := make(map[list.List]user.UserIDs)
 	chanerr := make(chan error, len(j)*3+1)
 	defer close(chanerr)
 	for _, v := range j {
-		v.GetListMember(client, &ret, chanerr, &mutex)
+		v.GetListMember(client, ret, chanerr, &mutex)
 	}
 
 	var err error
@@ -111,5 +110,5 @@ func (j Jobs) Getalllist(client *twtr.Client) (map[list.List]user.UserIDs, error
 			}
 		}
 	}
-	return ret, err
+	return *ret, err
 }
