@@ -132,7 +132,7 @@
 			var now = opts.data;
 			var user = e.target[0].value;
 			if (user !== "" && now.userids.indexOf(user) === -1){
-				now.userids.push(user);
+				now.userids.push(Number(user));
 				opts.patch(opts.index,now);
 			}
 			return 	e.preventDefault();
