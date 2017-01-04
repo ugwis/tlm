@@ -12,25 +12,25 @@ import (
 
 func (v Job) dojob(client *twtr.Client, result, origin *map[list.List]user.UserIDs,
 	ret *map[list.ListID]change.Change, listids *map[list.List]list.ListID) error {
-	l1 := (*result)[v.List1]
-	l2 := (*result)[v.List2]
+	l1 := (*result)[v.ListOne]
+	l2 := (*result)[v.ListAnother]
 	switch v.Operator {
 	case "*":
-		(*result)[v.Listresult] = l1.Intersect(l2)
+		(*result)[v.ListResult] = l1.Intersect(l2)
 	case "+":
-		(*result)[v.Listresult] = l1.Union(l2)
+		(*result)[v.ListResult] = l1.Union(l2)
 	case "-":
-		(*result)[v.Listresult] = l1.Except(l2)
+		(*result)[v.ListResult] = l1.Except(l2)
 	}
 
 	if v.Config.Saveflag {
 		addval := change.Change{
-			AddList: (*result)[v.Listresult].Except((*origin)[v.Listresult]),
-			DelList: (*origin)[v.Listresult].Except((*result)[v.Listresult])}
+			AddList: (*result)[v.ListResult].Except((*origin)[v.ListResult]),
+			DelList: (*origin)[v.ListResult].Except((*result)[v.ListResult])}
 
-		listid, ok := (*listids)[v.Listresult]
+		listid, ok := (*listids)[v.ListResult]
 		if !ok {
-			listid = v.Listresult.ListID
+			listid = v.ListResult.ListID
 
 			if listid == 0 {
 				var mode string
@@ -50,7 +50,7 @@ func (v Job) dojob(client *twtr.Client, result, origin *map[list.List]user.UserI
 
 				listid = list.ListID(createlist.ID.ID)
 			}
-			(*listids)[v.Listresult] = listid
+			(*listids)[v.ListResult] = listid
 		}
 		(*ret)[listid] = addval
 	}
@@ -74,18 +74,18 @@ func (jobs Jobs) Task(client *twtr.Client, origin map[list.List]user.UserIDs) (
 }
 
 func (job Job) GetListMember(client *twtr.Client, ret *map[list.List]user.UserIDs, chanerr chan error, mutex *sync.Mutex) {
-	if _, ok := (*ret)[job.List1]; !ok {
-		go job.List1.GetListMembers(client, chanerr, ret, mutex)
+	if _, ok := (*ret)[job.ListOne]; !ok {
+		go job.ListOne.GetListMembers(client, chanerr, ret, mutex)
 	} else {
 		chanerr <- nil
 	}
-	if _, ok := (*ret)[job.List2]; !ok {
-		go job.List2.GetListMembers(client, chanerr, ret, mutex)
+	if _, ok := (*ret)[job.ListAnother]; !ok {
+		go job.ListAnother.GetListMembers(client, chanerr, ret, mutex)
 	} else {
 		chanerr <- nil
 	}
-	if _, ok := (*ret)[job.Listresult]; !ok {
-		go job.Listresult.GetListMembers(client, chanerr, ret, mutex)
+	if _, ok := (*ret)[job.ListResult]; !ok {
+		go job.ListResult.GetListMembers(client, chanerr, ret, mutex)
 	} else {
 		chanerr <- nil
 	}
