@@ -352,22 +352,26 @@
 		<button>submit</button>
 	</form>
 	
-	{status}
+	<h1>{ status }</h1>
 	
 	<script>
 		var self = this
 	
-		self.status=""
+		status=""
 		
 		RiotControl.on('query_submited', (query)=>{
 			$.post("/api/query",{query:JSON.stringify(query)},function(result){
-				this.status=result.status;
-				this.update();
-			}.bind(this));
+				console.log(status)
+				status=result.status
+				this.update()
+			}.bind(this)).fail(()=>{
+				status="fail"
+				this.update()
+			})
 		})
 		submit(e){
 			RiotControl.trigger('query_submit')
-			return e.preventDefault();
+			return e.preventDefault()
 		}
 	</script>
 </submit>
