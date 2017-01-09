@@ -3,15 +3,20 @@
 		<button>export</button>
 	</form>
 	<adlibs />
-	<follower if={false}/>
+	<followers />
 	<jobs />
 	<submit />
 	
 	
 	<script>
+		var self=this
+	
+		self.on('mount', ()=>{
+			RiotControl.trigger('query_init')
+		})
 
 		RiotControl.on('query_export_data', (query)=>{
-			console.log(JSON.stringify(query));
+			console.log(JSON.stringify(query))
 		})
 
 		export(e) {
@@ -135,9 +140,110 @@
 	</script>
 </adlib>
 
+<followers>
+	<h1>Follower</h1>
+	<form onsubmit={ add } >
+		tag:<input>
+		<button>Add</button>
+	</form>
+	
+	<li each={ v,i in follower }>
+		<follower data={v} index={i} />
+	</li>
+
+	<script>
+		var self = this
+		self.disabled = true
+
+		self.follower=[]
+		
+		RiotControl.on('follower_changed', (follower)=>{
+			self.follower = follower
+			self.update()
+		})
+
+		add(e) {
+			RiotControl.trigger('query_add_follower', e.target[0].value)
+			return e.preventDefault();
+		}
+
+		
+	</script>
+</followers>
+
 <follower>
-	<h1>follower</h1>
+	<a onclick={ remove } class="glyphicon glyphicon-remove"></a>
+	{opts.data.list.tag}<br />
+		{this.showscreenname(opts.data.userid)}
+	<br />
+	screenname:<input onBlur={fetch_user_lists} />
+	<form style="display: inline" onsubmit={ change }>
+		<select id="select" class="list-select" >
+			<option each={selectlist} value={this[1]}>{this[0]}</option>
+		</select>
+		<button>Change</button>
+	</form>
+
+
+	<script>
+		var self = this
+	
+		selectlist=[];
+
+
+		remove() {
+			RiotControl.trigger('query_del_follower', opts.index)
+		}
+
+		change(e) {
+			
+		console.log(opts.data)
+			if(e.target[0].value){
+				RiotControl.trigger('query_change_follower', opts.index, e.target[0].value)
+			}
+			return 	e.preventDefault();
+		}
+
+		fetch_user_lists(obj){
+			screen_name = obj.srcElement.value;
+			$.post("/api/searchuser",{username:screen_name},function(result){
+				if(result.status==="ok"){
+					this.selectlist = result.data;
+					for(i in result.data) {
+						RiotControl.trigger('userIdscreenNameMap_change', result.data[i][1], result.data[i][0])
+					}
+					this.update();
+				}
+			}.bind(this));
+		}.bind(this);
+		
+		self.screenNameIdMap={}
+
+		RiotControl.on('userIdscreenNameMap_changed', (map)=>{
+			self.screenNameIdMap = map
+			self.update()
+		})
+
+		showscreenname(userID) {
+			if (userID===0)return "";
+			if (userID in self.screenNameIdMap ) {
+				return self.screenNameIdMap[userID];
+			} else {
+				self.screenNameIdMap[userID]="";
+				$.post("/api/getusers",{userids:[userID]},function(result){
+					if(result.status==="ok"){
+						RiotControl.trigger('userIdscreenNameMap_change', result.data[0][1], result.data[0][0])
+					} else {
+						delete self.screenNameIdMap[userID];
+					}
+				}).done(this.update).fail(()=>{
+					delete self.screenNameIdMap[userID];
+				})
+			}
+		}
+	</script>
 </follower>
+
 
 <jobs>
 	<h1>Job</h1>
@@ -156,9 +262,7 @@
 		
 		self.jobs
 
-		self.on('mount', ()=>{
-			RiotControl.trigger('query_init')
-		})
+
 		
 		RiotControl.on('jobs_changed', (jobs)=>{
 			self.jobs = jobs

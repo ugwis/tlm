@@ -16,6 +16,7 @@ function QueryStore() {
 	self.on('query_init', ()=>{
 		self.trigger('adlib_changed', self.query.preparation.adlib)
 		self.trigger('jobs_changed', self.query.jobs)
+		self.trigger('follower_changed', self.query.preparation.follower)
 	})
 	
 	self.on('query_export', ()=>{
@@ -47,6 +48,21 @@ function QueryStore() {
 		var userindex=self.query.preparation.adlib[index].userids.indexOf(user_id)
 		self.query.preparation.adlib[index].userids.splice(userindex,1)
 		self.trigger('adlib_changed', self.query.preparation.adlib)
+	})
+	
+	self.on('query_add_follower', (tag)=>{
+		self.query.preparation.follower.push({list:{listid:0, tag:tag},userid:0})
+		self.trigger('follower_changed', self.query.preparation.follower)
+	})
+	
+	self.on('query_del_follower', (index)=>{
+		self.query.preparation.adlib.splice(index, 1)
+		self.trigger('follower_changed', self.query.preparation.follower)
+	})
+	
+	self.on('query_change_follower', (index, user_id)=>{
+		self.query.preparation.follower[index].userid = Number(user_id)
+		self.trigger('follower_changed', self.query.preparation.follower)
 	})
 	
 	self.on('query_add_jobs', ()=>{

@@ -17,7 +17,6 @@ func (f Follower) GetFollowerIDs(client *twtr.Client) (user.UserIDs, error) {
 	for _, v := range resp.IDs {
 		ret = append(ret, user.UserID(v))
 	}
-
 	for resp.Cursor.NextCursor != 0 {
 		resp, err = client.GetFollowerIDs((&twtr.Values{"user_id": strconv.FormatInt(int64(userID), 10)}).AddNextCursor(resp.Cursor))
 		if err != nil {
